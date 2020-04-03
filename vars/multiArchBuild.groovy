@@ -1,9 +1,22 @@
-def getDockerfileName(name) {
+def getDockerfileName(String name) {
   if ((name?.trim()) as boolean) {
     return name
   } else {
     return 'Dockerfile'
  }
+}
+
+def getBuildContext(Map config, String architecture) {
+  if (architecture=='windows-amd64') {
+    return config.windowsContext
+  }
+  if (architecture=='linux-arm64' && (config.linuxArm64Context?.trim()) as boolean) {
+    return config.linuxArm64Context
+  }
+  if (architecture=='linux-arm')  && (config.linuxArmContext?.trim()) as boolean) {
+    return config.linuxArmContext
+  }
+  return config.linuxContext
 }
 
 def call(Map config) {
@@ -13,16 +26,17 @@ def call(Map config) {
             stage('build') {
                 environment {
                     REPO_NAME = "${JOB_NAME}"
-                    BUILD_CONTEXT = "${config.linuxContext}"
-                    WINDOWS_BUILD_CONTEXT = "${config.windowsContext}"
                     DOCKERFILE = getDockerfileName(config.dockerfile)
                 }
                 parallel {
-                    stage('linux-arm64') {                        
+                    stage('linux-arm64') {
+                        environment {
+                            BUILD_CONTEXT = getDockerfileName(getBuildContext(config, ${STAGE_NAME}))
+                        }                   
                         steps {
                             script{
                                 docker.withServer("tcp://${DOCKER_LINUX_ARM64}:2376", 'docker-client') {
-                                    def image = docker.build("${REPO_NAME}:${STAGE_NAME}", "-f ${BUILD_CONTEXT}/${DOCKERFILE} ${BUILD_CONTEXT}")
+                                    def image = docker.build("${REPO_NAME}:${STAGE_NAME}", "--pull -f ${BUILD_CONTEXT}/${DOCKERFILE} ${BUILD_CONTEXT}")
                                     withDockerRegistry([credentialsId: "docker-hub", url: "" ]) {        
                                         image.push()
                                     }
@@ -30,11 +44,14 @@ def call(Map config) {
                             }
                         }
                     }
-                    stage('linux-arm') {                        
+                    stage('linux-arm') { 
+                        environment {
+                            BUILD_CONTEXT = getDockerfileName(getBuildContext(config, ${STAGE_NAME}))
+                        }                         
                         steps {
                             script{
                                  docker.withServer("tcp://${DOCKER_LINUX_ARM}:2376", 'docker-client') {
-                                    def image = docker.build("${REPO_NAME}:${STAGE_NAME}", "-f ${BUILD_CONTEXT}/${DOCKERFILE} ${BUILD_CONTEXT}")
+                                    def image = docker.build("${REPO_NAME}:${STAGE_NAME}", "--pull -f ${BUILD_CONTEXT}/${DOCKERFILE} ${BUILD_CONTEXT}")
                                     withDockerRegistry([credentialsId: "docker-hub", url: "" ]) {        
                                         image.push()
                                     }      
@@ -42,11 +59,14 @@ def call(Map config) {
                             }
                         }
                     }
-                    stage('linux-amd64') {                        
+                    stage('linux-amd64') {         
+                        environment {
+                            BUILD_CONTEXT = getDockerfileName(getBuildContext(config, ${STAGE_NAME}))
+                        }                 
                         steps {
                             script{
                                 docker.withServer("tcp://${DOCKER_LINUX_AMD64}:2376", 'docker-client') {
-                                    def image = docker.build("${REPO_NAME}:${STAGE_NAME}", "-f ${BUILD_CONTEXT}/${DOCKERFILE} ${BUILD_CONTEXT}")
+                                    def image = docker.build("${REPO_NAME}:${STAGE_NAME}", "--pull -f ${BUILD_CONTEXT}/${DOCKERFILE} ${BUILD_CONTEXT}")
                                     withDockerRegistry([credentialsId: "docker-hub", url: "" ]) {        
                                         image.push()
                                     }       
@@ -54,11 +74,14 @@ def call(Map config) {
                             }
                         }
                     }                
-                    stage('windows-amd64') {                        
+                    stage('windows-amd64') {  
+                        environment {
+                            BUILD_CONTEXT = getDockerfileName(getBuildContext(config, ${STAGE_NAME}))
+                        }                        
                         steps {
                             script {
                                 docker.withServer("tcp://${DOCKER_WINDOWS_AMD64}:2376", 'docker-client') {
-                                    def image = docker.build("${REPO_NAME}:${STAGE_NAME}", "-f ${WINDOWS_BUILD_CONTEXT}/${DOCKERFILE} ${WINDOWS_BUILD_CONTEXT}")
+                                    def image = docker.build("${REPO_NAME}:${STAGE_NAME}", "--pull -f ${BUILD_CONTEXT}/${DOCKERFILE} ${BUILD_CONTEXT}")
                                     withDockerRegistry([credentialsId: "docker-hub", url: "" ]) {        
                                         image.push()
                                     }     
