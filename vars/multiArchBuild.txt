@@ -18,6 +18,7 @@ multiArchBuild linuxContext: 'test3/image1/linux', windowsContext: 'test3/image1
 
 - `linuxContext` - path to the Docker context for Linux builds
 - `windowsContext` - path to the Docker context for Windows builds
+- `dockerfile` - name of Dockerfile to build, defaults to `Dockerfile`
 
 ## Assumptions
 

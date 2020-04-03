@@ -1,3 +1,11 @@
+def getDockerfileName(name) {
+  if ((name?.trim()) as boolean) {
+    return name
+  } else {
+    return 'Dockerfile'
+ }
+}
+
 def call(Map config) {
     pipeline {
         agent any
@@ -7,13 +15,14 @@ def call(Map config) {
                     REPO_NAME = "${JOB_NAME}"
                     BUILD_CONTEXT = "${config.linuxContext}"
                     WINDOWS_BUILD_CONTEXT = "${config.windowsContext}"
+                    DOCKERFILE = getDockerfileName(config.dockerfile)
                 }
                 parallel {
                     stage('linux-arm64') {                        
                         steps {
                             script{
                                 docker.withServer("tcp://${DOCKER_LINUX_ARM64}:2376", 'docker-client') {
-                                    def image = docker.build("${REPO_NAME}:${STAGE_NAME}", "${BUILD_CONTEXT}")
+                                    def image = docker.build("${REPO_NAME}:${STAGE_NAME}", "-f ${DOCKERFILE}", "${BUILD_CONTEXT}")
                                     withDockerRegistry([credentialsId: "docker-hub", url: "" ]) {        
                                         image.push()
                                     }
@@ -25,7 +34,7 @@ def call(Map config) {
                         steps {
                             script{
                                  docker.withServer("tcp://${DOCKER_LINUX_ARM}:2376", 'docker-client') {
-                                    def image = docker.build("${REPO_NAME}:${STAGE_NAME}", "${BUILD_CONTEXT}")
+                                    def image = docker.build("${REPO_NAME}:${STAGE_NAME}", "-f ${DOCKERFILE}", "${BUILD_CONTEXT}")
                                     withDockerRegistry([credentialsId: "docker-hub", url: "" ]) {        
                                         image.push()
                                     }      
@@ -37,7 +46,7 @@ def call(Map config) {
                         steps {
                             script{
                                 docker.withServer("tcp://${DOCKER_LINUX_AMD64}:2376", 'docker-client') {
-                                    def image = docker.build("${REPO_NAME}:${STAGE_NAME}", "${BUILD_CONTEXT}")
+                                    def image = docker.build("${REPO_NAME}:${STAGE_NAME}", "-f ${DOCKERFILE}", "${BUILD_CONTEXT}")
                                     withDockerRegistry([credentialsId: "docker-hub", url: "" ]) {        
                                         image.push()
                                     }       
@@ -49,7 +58,7 @@ def call(Map config) {
                         steps {
                             script {
                                 docker.withServer("tcp://${DOCKER_WINDOWS_AMD64}:2376", 'docker-client') {
-                                    def image = docker.build("${REPO_NAME}:${STAGE_NAME}", "${WINDOWS_BUILD_CONTEXT}")
+                                    def image = docker.build("${REPO_NAME}:${STAGE_NAME}", "-f ${DOCKERFILE}", "${WINDOWS_BUILD_CONTEXT}")
                                     withDockerRegistry([credentialsId: "docker-hub", url: "" ]) {        
                                         image.push()
                                     }     
