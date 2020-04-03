@@ -13,7 +13,7 @@ def getBuildContext(Map config, String architecture) {
   if (architecture=='linux-arm64' && (config.linuxArm64Context?.trim()) as boolean) {
     return config.linuxArm64Context
   }
-  if (architecture=='linux-arm')  && (config.linuxArmContext?.trim()) as boolean) {
+  if (architecture=='linux-arm' && (config.linuxArmContext?.trim()) as boolean) {
     return config.linuxArmContext
   }
   return config.linuxContext
@@ -31,7 +31,7 @@ def call(Map config) {
                 parallel {
                     stage('linux-arm64') {
                         environment {
-                            BUILD_CONTEXT = getDockerfileName(getBuildContext(config, ${STAGE_NAME}))
+                            BUILD_CONTEXT = getBuildContext(config, ${STAGE_NAME})
                         }                   
                         steps {
                             script{
@@ -46,7 +46,7 @@ def call(Map config) {
                     }
                     stage('linux-arm') { 
                         environment {
-                            BUILD_CONTEXT = getDockerfileName(getBuildContext(config, ${STAGE_NAME}))
+                            BUILD_CONTEXT = getBuildContext(config, ${STAGE_NAME})
                         }                         
                         steps {
                             script{
@@ -61,7 +61,7 @@ def call(Map config) {
                     }
                     stage('linux-amd64') {         
                         environment {
-                            BUILD_CONTEXT = getDockerfileName(getBuildContext(config, ${STAGE_NAME}))
+                            BUILD_CONTEXT = getBuildContext(config, ${STAGE_NAME})
                         }                 
                         steps {
                             script{
@@ -76,7 +76,7 @@ def call(Map config) {
                     }                
                     stage('windows-amd64') {  
                         environment {
-                            BUILD_CONTEXT = getDockerfileName(getBuildContext(config, ${STAGE_NAME}))
+                            BUILD_CONTEXT = getBuildContext(config, ${STAGE_NAME})
                         }                        
                         steps {
                             script {
