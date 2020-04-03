@@ -31,7 +31,7 @@ def call(Map config) {
                 parallel {
                     stage('linux-arm64') {
                         environment {
-                            BUILD_CONTEXT = getBuildContext(config, ${STAGE_NAME})
+                            BUILD_CONTEXT = getBuildContext(config, env.STAGE_NAME)
                         }                   
                         steps {
                             script{
@@ -46,7 +46,7 @@ def call(Map config) {
                     }
                     stage('linux-arm') { 
                         environment {
-                            BUILD_CONTEXT = getBuildContext(config, ${STAGE_NAME})
+                            BUILD_CONTEXT = getBuildContext(config, env.STAGE_NAME)
                         }                         
                         steps {
                             script{
@@ -61,7 +61,7 @@ def call(Map config) {
                     }
                     stage('linux-amd64') {         
                         environment {
-                            BUILD_CONTEXT = getBuildContext(config, ${STAGE_NAME})
+                            BUILD_CONTEXT = getBuildContext(config, env.STAGE_NAME)
                         }                 
                         steps {
                             script{
@@ -76,7 +76,7 @@ def call(Map config) {
                     }                
                     stage('windows-amd64') {  
                         environment {
-                            BUILD_CONTEXT = getBuildContext(config, ${STAGE_NAME})
+                            BUILD_CONTEXT = getBuildContext(config, env.STAGE_NAME)
                         }                        
                         steps {
                             script {
