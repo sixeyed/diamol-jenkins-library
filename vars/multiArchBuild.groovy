@@ -34,7 +34,8 @@ def call(Map config) {
                         steps {
                             script{
                                  docker.withServer("tcp://${DOCKER_LINUX_ARM}:2376", 'docker-client') {
-                                    def image = docker.build("${REPO_NAME}:${STAGE_NAME}", "-f ${BUILD_CONTEXT}/${DOCKERFILE} ${BUILD_CONTEXT}")                                    withDockerRegistry([credentialsId: "docker-hub", url: "" ]) {        
+                                    def image = docker.build("${REPO_NAME}:${STAGE_NAME}", "-f ${BUILD_CONTEXT}/${DOCKERFILE} ${BUILD_CONTEXT}")
+                                    withDockerRegistry([credentialsId: "docker-hub", url: "" ]) {        
                                         image.push()
                                     }      
                                 }
@@ -57,7 +58,7 @@ def call(Map config) {
                         steps {
                             script {
                                 docker.withServer("tcp://${DOCKER_WINDOWS_AMD64}:2376", 'docker-client') {
-                                    def image = docker.build("${REPO_NAME}:${STAGE_NAME}", "-f ${BUILD_CONTEXT}/${DOCKERFILE} ${WINDOWS_BUILD_CONTEXT}")
+                                    def image = docker.build("${REPO_NAME}:${STAGE_NAME}", "-f ${WINDOWS_BUILD_CONTEXT}/${DOCKERFILE} ${WINDOWS_BUILD_CONTEXT}")
                                     withDockerRegistry([credentialsId: "docker-hub", url: "" ]) {        
                                         image.push()
                                     }     
