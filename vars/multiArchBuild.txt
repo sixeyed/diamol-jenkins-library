@@ -1,0 +1,51 @@
+# Multi-arch Docker Build
+
+Builds a Docker image on multiple Docker Engines in parallel, pushes them all to Docker Hub and then generates and pushes a multi-arch manifest.
+
+## Usage
+
+Contains an enties pipeline. Sample Jenkinsfile:
+
+```
+library identifier: 'diamol-jenkins-library@master', retriever: modernSCM(
+  [$class: 'GitSCMSource',
+   remote: 'https://github.com/sixeyed/diamol-jenkins-library.git'])
+
+multiArchBuild linuxContext: 'test3/image1/linux', windowsContext: 'test3/image1/windows'
+```
+
+## Parameters
+
+- `linuxContext` - path to the Docker context for Linux builds
+- `windowsContext` - path to the Docker context for Windows builds
+
+## Assumptions
+
+Assumes a {folder}/{job} structure in Jenkins, where the folder name is the organization on Docker Hub and the job name is the image repo name.
+
+e.g: job name `diamol/ch02-hello-world` will build and push a multi-arch manifest called `diamol/ch02-hello-world`.
+
+Each architecture is pushed independently before the manifest, so there will be four images:
+
+- `diamol/ch02-hello-world:linux-arm64`
+- `diamol/ch02-hello-world:linux-arm`
+- `diamol/ch02-hello-world:linux-amd64`
+- `diamol/ch02-hello-world:windows-amd64`
+
+> Also requires the Docker CLI on the Jenkins master [configured for experimental mode](https://github.com/docker/docker.github.io/pull/5736#issuecomment-384835806) (needed to push manifests)
+
+## Required environment variables
+
+Typically set globally in _Manage Jenkins_..._Configure System_..._Global Properties_.
+
+IP address or host name of the Docker Engines used for the builds:
+
+- `DOCKER_LINUX_ARM64` - ARM64 Linux Engine (e.g. Pi4, Pine64 or Rock64)
+- `DOCKER_LINUX_ARM` - ARM Linux Engine (e.g. Pi3)
+- `DOCKER_LINUX_AMD64` - x64 Linux Engine
+- `DOCKER_WINDOWS_AMD64` - x64 Windows Engine
+
+## Required credentials
+
+- `docker-hub` - username/password credential with Docker Hub user and access token
+- `docker-client` - X.509 client certificate with CA, client cert and key for Docker Engines
