@@ -22,6 +22,7 @@ multiArchBuild linuxContext: 'test3/image1/linux', windowsContext: 'test3/image1
 - `linuxArm64Context` - optional path to the Docker context for Linux ARM64 builds
 - `linuxArmContext` - optional path to the Docker context for Linux ARM builds
 - `tag` - custom image tag; defaults to `latest`
+- `repoName` - custom repo name; defaults to Jenkins job name
 
 
 ## Assumptions

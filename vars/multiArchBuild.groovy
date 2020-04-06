@@ -1,3 +1,11 @@
+def getRepoName(String repoName, String jobName) {
+  if ((repoName?.trim()) as boolean) {
+    return repoName
+  } else {
+    return 'jobName'
+ }
+}
+
 def getImageTag(String tag, String architecture) {
   if ((tag?.trim()) as boolean) {
     return tag + '-' + architecture
@@ -39,7 +47,7 @@ def call(Map config) {
     pipeline {
         agent any
         environment {
-            REPO_NAME = "${JOB_NAME}"
+            REPO_NAME = getRepoName(config.repoName, env.JOB_NAME)
         }
         stages {
             stage('build') {
