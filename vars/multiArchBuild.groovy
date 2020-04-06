@@ -1,8 +1,8 @@
-def getTag(String tag) {
+def getImageTag(String tag, String architecture) {
   if ((tag?.trim()) as boolean) {
-    return tag + '-'
+    return tag + '-' + architecture
   } else {
-    return ''
+    return architecture
  }
 }
 
@@ -40,7 +40,6 @@ def call(Map config) {
         agent any
         environment {
             REPO_NAME = "${JOB_NAME}"
-            TAG = getTag(config.tag)
         }
         stages {
             stage('build') {
@@ -51,11 +50,12 @@ def call(Map config) {
                     stage('linux-arm64') {
                         environment {
                             BUILD_CONTEXT = getBuildContext(config, env.STAGE_NAME)
+                            TAG = getImageTag(config.tag, env.STAGE_NAME)
                         }                   
                         steps {
                             script{
                                 docker.withServer("tcp://${DOCKER_LINUX_ARM64}:2376", 'docker-client') {
-                                    def image = docker.build("${REPO_NAME}:${TAG}${STAGE_NAME}", "--pull -f ${BUILD_CONTEXT}/${DOCKERFILE} ${BUILD_CONTEXT}")
+                                    def image = docker.build("${REPO_NAME}:${TAG}", "--pull -f ${BUILD_CONTEXT}/${DOCKERFILE} ${BUILD_CONTEXT}")
                                     withDockerRegistry([credentialsId: "docker-hub", url: "" ]) {        
                                         image.push()
                                     }
@@ -66,11 +66,12 @@ def call(Map config) {
                     stage('linux-arm') { 
                         environment {
                             BUILD_CONTEXT = getBuildContext(config, env.STAGE_NAME)
+                            TAG = getImageTag(config.tag, env.STAGE_NAME)
                         }                         
                         steps {
                             script{
                                  docker.withServer("tcp://${DOCKER_LINUX_ARM}:2376", 'docker-client') {
-                                    def image = docker.build("${REPO_NAME}:${TAG}${STAGE_NAME}", "--pull -f ${BUILD_CONTEXT}/${DOCKERFILE} ${BUILD_CONTEXT}")
+                                    def image = docker.build("${REPO_NAME}:${TAG}", "--pull -f ${BUILD_CONTEXT}/${DOCKERFILE} ${BUILD_CONTEXT}")
                                     withDockerRegistry([credentialsId: "docker-hub", url: "" ]) {        
                                         image.push()
                                     }      
@@ -81,11 +82,12 @@ def call(Map config) {
                     stage('linux-amd64') {         
                         environment {
                             BUILD_CONTEXT = getBuildContext(config, env.STAGE_NAME)
+                            TAG = getImageTag(config.tag, env.STAGE_NAME)
                         }                 
                         steps {
                             script{
                                 docker.withServer("tcp://${DOCKER_LINUX_AMD64}:2376", 'docker-client') {
-                                    def image = docker.build("${REPO_NAME}:${TAG}${STAGE_NAME}", "--pull -f ${BUILD_CONTEXT}/${DOCKERFILE} ${BUILD_CONTEXT}")
+                                    def image = docker.build("${REPO_NAME}:${TAG}", "--pull -f ${BUILD_CONTEXT}/${DOCKERFILE} ${BUILD_CONTEXT}")
                                     withDockerRegistry([credentialsId: "docker-hub", url: "" ]) {        
                                         image.push()
                                     }       
@@ -96,11 +98,12 @@ def call(Map config) {
                     stage('windows-amd64') {  
                         environment {
                             BUILD_CONTEXT = getBuildContext(config, env.STAGE_NAME)
+                            TAG = getImageTag(config.tag, env.STAGE_NAME)
                         }                        
                         steps {
                             script {
                                 docker.withServer("tcp://${DOCKER_WINDOWS_AMD64}:2376", 'docker-client') {
-                                    def image = docker.build("${REPO_NAME}:${TAG}${STAGE_NAME}", "--pull -f ${BUILD_CONTEXT}/${DOCKERFILE} ${BUILD_CONTEXT}")
+                                    def image = docker.build("${REPO_NAME}:${TAG}", "--pull -f ${BUILD_CONTEXT}/${DOCKERFILE} ${BUILD_CONTEXT}")
                                     withDockerRegistry([credentialsId: "docker-hub", url: "" ]) {        
                                         image.push()
                                     }     
@@ -113,11 +116,18 @@ def call(Map config) {
             stage('manifest') {
                 environment {
                     MANIFEST_TAG = getManifestTag(config.tag)
+                    TAG_1 = getImageTag(config.tag, 'windows-amd64')
+                    TAG_2 = getImageTag(config.tag, 'linux-amd64')
+                    TAG_3 = getImageTag(config.tag, 'linux-arm64')
+                    TAG_4 = getImageTag(config.tag, 'linux-arm') 
                 }
                 steps {
                     sh '''
                         docker manifest create --amend "$REPO_NAME:$MANIFEST_TAG" \
-                            "$REPO_NAME:${TAG}windows-amd64" "$REPO_NAME:${TAG}linux-amd64" "$REPO_NAME:${TAG}linux-arm64" "$REPO_NAME:${TAG}linux-arm"
+                            "$REPO_NAME:$TAG_1" \
+                            "$REPO_NAME:$TAG_2" \
+                            "$REPO_NAME:$TAG_3" \
+                            "$REPO_NAME:$TAG_4"
     
                         docker manifest inspect "$REPO_NAME:$MANIFEST_TAG"
                     '''
