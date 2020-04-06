@@ -21,6 +21,8 @@ multiArchBuild linuxContext: 'test3/image1/linux', windowsContext: 'test3/image1
 - `dockerfile` - name of Dockerfile to build; defaults to `Dockerfile`
 - `linuxArm64Context` - optional path to the Docker context for Linux ARM64 builds
 - `linuxArmContext` - optional path to the Docker context for Linux ARM builds
+- `tag` - custom image tag; defaults to `latest`
+
 
 ## Assumptions
 

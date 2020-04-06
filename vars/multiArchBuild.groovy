@@ -1,3 +1,19 @@
+def getTag(String tag) {
+  if ((tag?.trim()) as boolean) {
+    return tag + '-'
+  } else {
+    return ''
+ }
+}
+
+def getManifestTag(String tag) {
+  if ((tag?.trim()) as boolean) {
+    return tag
+  } else {
+    return 'latest'
+ }
+}
+
 def getDockerfileName(String name) {
   if ((name?.trim()) as boolean) {
     return name
@@ -23,9 +39,12 @@ def call(Map config) {
     pipeline {
         agent any
         stages {
+            environment {
+                REPO_NAME = "${JOB_NAME}"
+                TAG = getTag(config.tag)
+            }
             stage('build') {
                 environment {
-                    REPO_NAME = "${JOB_NAME}"
                     DOCKERFILE = getDockerfileName(config.dockerfile)
                 }
                 parallel {
@@ -36,7 +55,7 @@ def call(Map config) {
                         steps {
                             script{
                                 docker.withServer("tcp://${DOCKER_LINUX_ARM64}:2376", 'docker-client') {
-                                    def image = docker.build("${REPO_NAME}:${STAGE_NAME}", "--pull -f ${BUILD_CONTEXT}/${DOCKERFILE} ${BUILD_CONTEXT}")
+                                    def image = docker.build("${REPO_NAME}:${TAG}${STAGE_NAME}", "--pull -f ${BUILD_CONTEXT}/${DOCKERFILE} ${BUILD_CONTEXT}")
                                     withDockerRegistry([credentialsId: "docker-hub", url: "" ]) {        
                                         image.push()
                                     }
@@ -51,7 +70,7 @@ def call(Map config) {
                         steps {
                             script{
                                  docker.withServer("tcp://${DOCKER_LINUX_ARM}:2376", 'docker-client') {
-                                    def image = docker.build("${REPO_NAME}:${STAGE_NAME}", "--pull -f ${BUILD_CONTEXT}/${DOCKERFILE} ${BUILD_CONTEXT}")
+                                    def image = docker.build("${REPO_NAME}:${TAG}${STAGE_NAME}", "--pull -f ${BUILD_CONTEXT}/${DOCKERFILE} ${BUILD_CONTEXT}")
                                     withDockerRegistry([credentialsId: "docker-hub", url: "" ]) {        
                                         image.push()
                                     }      
@@ -66,7 +85,7 @@ def call(Map config) {
                         steps {
                             script{
                                 docker.withServer("tcp://${DOCKER_LINUX_AMD64}:2376", 'docker-client') {
-                                    def image = docker.build("${REPO_NAME}:${STAGE_NAME}", "--pull -f ${BUILD_CONTEXT}/${DOCKERFILE} ${BUILD_CONTEXT}")
+                                    def image = docker.build("${REPO_NAME}:${TAG}${STAGE_NAME}", "--pull -f ${BUILD_CONTEXT}/${DOCKERFILE} ${BUILD_CONTEXT}")
                                     withDockerRegistry([credentialsId: "docker-hub", url: "" ]) {        
                                         image.push()
                                     }       
@@ -81,7 +100,7 @@ def call(Map config) {
                         steps {
                             script {
                                 docker.withServer("tcp://${DOCKER_WINDOWS_AMD64}:2376", 'docker-client') {
-                                    def image = docker.build("${REPO_NAME}:${STAGE_NAME}", "--pull -f ${BUILD_CONTEXT}/${DOCKERFILE} ${BUILD_CONTEXT}")
+                                    def image = docker.build("${REPO_NAME}:${TAG}${STAGE_NAME}", "--pull -f ${BUILD_CONTEXT}/${DOCKERFILE} ${BUILD_CONTEXT}")
                                     withDockerRegistry([credentialsId: "docker-hub", url: "" ]) {        
                                         image.push()
                                     }     
@@ -92,24 +111,27 @@ def call(Map config) {
                 }
             }
             stage('manifest') {
+                environment {
+                    MANIFEST_TAG = getManifestTag(config.tag)
+                }
                 steps {
                     sh """
-                        docker manifest create --amend $JOB_NAME \
-                            $JOB_NAME:windows-amd64 $JOB_NAME:linux-amd64 $JOB_NAME:linux-arm64 $JOB_NAME:linux-arm
+                        docker manifest create --amend $REPO_NAME:$MANIFEST_TAG \
+                            $REPO_NAME:${TAG}windows-amd64 $REPO_NAME:${TAG}linux-amd64 $REPO_NAME:${TAG}linux-arm64 $REPO_NAME:${TAG}linux-arm
     
-                        docker manifest inspect $JOB_NAME
+                        docker manifest inspect $REPO_NAME:$MANIFEST_TAG
                     """
                     //can't do this because plugin writes its own config file
                     // and we need experimental mode to push manifests
                     //withDockerRegistry([credentialsId: "docker-hub", url: "" ]) {        
                     //    sh """
-                    //        docker manifest push $JOB_NAME
+                    //        docker manifest push ...
                     //    """
                     // }
                     withCredentials([usernamePassword(credentialsId: 'docker-hub', usernameVariable: 'DOCKER_HUB_USER', passwordVariable: 'DOCKER_HUB_PASSWORD')]) {
                         sh '''
                             docker login -u "$DOCKER_HUB_USER" -p "$DOCKER_HUB_PASSWORD"
-                            docker manifest push "$JOB_NAME"
+                            docker manifest push "$REPO_NAME:$MANIFEST_TAG"
                             docker logout
                         '''
                     }
