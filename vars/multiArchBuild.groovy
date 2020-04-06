@@ -115,12 +115,12 @@ def call(Map config) {
                     MANIFEST_TAG = getManifestTag(config.tag)
                 }
                 steps {
-                    sh """
-                        docker manifest create --amend $REPO_NAME:$MANIFEST_TAG \
-                            $REPO_NAME:${TAG}windows-amd64 $REPO_NAME:${TAG}linux-amd64 $REPO_NAME:${TAG}linux-arm64 $REPO_NAME:${TAG}linux-arm
+                    sh '''
+                        docker manifest create --amend "$REPO_NAME:$MANIFEST_TAG" \
+                            "$REPO_NAME:${TAG}windows-amd64" "$REPO_NAME:${TAG}linux-amd64" "$REPO_NAME:${TAG}linux-arm64" "$REPO_NAME:${TAG}linux-arm"
     
-                        docker manifest inspect $REPO_NAME:$MANIFEST_TAG
-                    """
+                        docker manifest inspect "$REPO_NAME:$MANIFEST_TAG"
+                    '''
                     //can't do this because plugin writes its own config file
                     // and we need experimental mode to push manifests
                     //withDockerRegistry([credentialsId: "docker-hub", url: "" ]) {        
