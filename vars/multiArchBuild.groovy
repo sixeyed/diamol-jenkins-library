@@ -38,11 +38,11 @@ def getBuildContext(Map config, String architecture) {
 def call(Map config) {
     pipeline {
         agent any
+        environment {
+            REPO_NAME = "${JOB_NAME}"
+            TAG = getTag(config.tag)
+        }
         stages {
-            environment {
-                REPO_NAME = "${JOB_NAME}"
-                TAG = getTag(config.tag)
-            }
             stage('build') {
                 environment {
                     DOCKERFILE = getDockerfileName(config.dockerfile)
