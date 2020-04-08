@@ -2,7 +2,7 @@ def getRepoName(String repoName, String jobName) {
   if ((repoName?.trim()) as boolean) {
     return repoName
   } else {
-    return 'jobName'
+    return jobName
  }
 }
 
