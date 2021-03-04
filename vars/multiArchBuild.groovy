@@ -63,8 +63,8 @@ def call(Map config) {
                         steps {
                             script{
                                 docker.withServer("tcp://${DOCKER_LINUX_ARM64}:2376", 'docker-client') {
-                                    def image = docker.build("${REPO_NAME}:${TAG}", "--pull -f ${BUILD_CONTEXT}/${DOCKERFILE} ${BUILD_CONTEXT}")
-                                    withDockerRegistry([credentialsId: "docker-hub", url: "" ]) {        
+                                    withDockerRegistry([credentialsId: "docker-hub", url: "" ]) {  
+                                        def image = docker.build("${REPO_NAME}:${TAG}", "--pull -f ${BUILD_CONTEXT}/${DOCKERFILE} ${BUILD_CONTEXT}")                                          
                                         image.push()
                                     }
                                 }
@@ -79,8 +79,8 @@ def call(Map config) {
                         steps {
                             script{
                                  docker.withServer("tcp://${DOCKER_LINUX_ARM}:2376", 'docker-client') {
-                                    def image = docker.build("${REPO_NAME}:${TAG}", "--pull -f ${BUILD_CONTEXT}/${DOCKERFILE} ${BUILD_CONTEXT}")
-                                    withDockerRegistry([credentialsId: "docker-hub", url: "" ]) {        
+                                    withDockerRegistry([credentialsId: "docker-hub", url: "" ]) {      
+                                        def image = docker.build("${REPO_NAME}:${TAG}", "--pull -f ${BUILD_CONTEXT}/${DOCKERFILE} ${BUILD_CONTEXT}")  
                                         image.push()
                                     }      
                                 }
@@ -95,8 +95,8 @@ def call(Map config) {
                         steps {
                             script{
                                 docker.withServer("tcp://${DOCKER_LINUX_AMD64}:2376", 'docker-client') {
-                                    def image = docker.build("${REPO_NAME}:${TAG}", "--pull -f ${BUILD_CONTEXT}/${DOCKERFILE} ${BUILD_CONTEXT}")
-                                    withDockerRegistry([credentialsId: "docker-hub", url: "" ]) {        
+                                    withDockerRegistry([credentialsId: "docker-hub", url: "" ]) { 
+                                        def image = docker.build("${REPO_NAME}:${TAG}", "--pull -f ${BUILD_CONTEXT}/${DOCKERFILE} ${BUILD_CONTEXT}")
                                         image.push()
                                     }       
                                 }
@@ -111,8 +111,8 @@ def call(Map config) {
                         steps {
                             script {
                                 docker.withServer("tcp://${DOCKER_WINDOWS_AMD64}:2376", 'docker-client') {
-                                    def image = docker.build("${REPO_NAME}:${TAG}", "--pull -f ${BUILD_CONTEXT}/${DOCKERFILE} ${BUILD_CONTEXT}")
-                                    withDockerRegistry([credentialsId: "docker-hub", url: "" ]) {        
+                                    withDockerRegistry([credentialsId: "docker-hub", url: "" ]) { 
+                                        def image = docker.build("${REPO_NAME}:${TAG}", "--pull -f ${BUILD_CONTEXT}/${DOCKERFILE} ${BUILD_CONTEXT}")                                           
                                         image.push()
                                     }     
                                 }
